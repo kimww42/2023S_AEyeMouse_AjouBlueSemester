@@ -72,6 +72,7 @@ class Eye(object):
         Calculates a ratio that can indicate whether an eye is closed or not.
         It's the division of the width of the eye, by its height.
 
+
         Arguments:
             landmarks (dlib.full_object_detection): Facial landmarks for the face region
             points (list): Points of an eye (from the 68 Multi-PIE landmarks)
