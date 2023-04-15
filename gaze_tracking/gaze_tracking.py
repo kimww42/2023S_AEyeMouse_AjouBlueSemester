@@ -108,7 +108,7 @@ class GazeTracking(object):
                             
             #blinking 2번
             blinking_ratio = (self.eye_left.blinking + self.eye_right.blinking) / 2
-            if blinking_ratio > 3.8:    #3.8
+            if blinking_ratio > 4.0:    #3.8
                 print('check')
                 blink = 1          # 원하는대로 바꾸시면 됩니다요
             
