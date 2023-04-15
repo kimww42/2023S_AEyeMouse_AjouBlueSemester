@@ -2,7 +2,6 @@ from __future__ import division
 import os
 import cv2
 import dlib
-import csv
 from .eye import Eye
 from .calibration import Calibration
 
@@ -27,8 +26,7 @@ class GazeTracking(object):
         cwd = os.path.abspath(os.path.dirname(__file__))
         model_path = os.path.abspath(os.path.join(cwd, "trained_models/shape_predictor_68_face_landmarks.dat"))
         self._predictor = dlib.shape_predictor(model_path)
-        self.left = []
-        
+                
 
     @property
     def pupils_located(self):
@@ -95,14 +93,25 @@ class GazeTracking(object):
 
         return frame
     
-    def txt_left_coords(self):
-        '''참고 : https://seong6496.tistory.com/328'''
+    ##################################################################################################################
+    '          ************************************    여기 보세요    **********************************              '
+    ##################################################################################################################
+    
+    def left_eye(self):
+        '''
+        return left eye's coordinate(x,y) as tuple and whether left eye's blinking      
+        '''
+        blink = 0
+        if self.pupils_located:        
+            #left eye coordinate    
+            left_x, left_y = self.pupil_left_coords()        
+                            
+            #blinking 2번
+            blinking_ratio = (self.eye_left.blinking + self.eye_right.blinking) / 2
+            if blinking_ratio > 3.8:    #3.8
+                print('check')
+                blink = 1          # 원하는대로 바꾸시면 됩니다요
+            
+        return left_x, left_y, blink
+    ##################################################################################################################
         
-        if self.pupils_located:
-            x_left, y_left = self.pupil_left_coords()
-            self.left.append((x_left, y_left))
-            print(self.left)
-        
-        with open('left.csv','w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(self.left)

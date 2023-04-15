@@ -65,6 +65,7 @@ class Eye(object):
 
         height, width = self.frame.shape[:2]
         self.center = (width / 2, height / 2)
+        
 
     def _blinking_ratio(self, landmarks, points):
         """
@@ -92,6 +93,7 @@ class Eye(object):
             ratio = None
 
         return ratio
+    
 
     def _analyze(self, original_frame, landmarks, side, calibration):
         """
