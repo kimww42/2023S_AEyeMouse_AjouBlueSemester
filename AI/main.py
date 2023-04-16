@@ -8,6 +8,7 @@ import cv2
 import dlib
 import imutils
 
+
 # 0이 기본 설정된 카메라.
 capture = cv2.VideoCapture(0)
 
@@ -73,7 +74,7 @@ while True:
     # 좌우 반전
     frame = cv2.flip(frame, 1)
     # 이미지 크기를 줄이고, 흑백으로 변환하여 계산 시간을 줄임
-    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+    small_frame = cv2.resize(frame, (0, 0), fx=0.3, fy=0.3)
     gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
 
     detect(gray, small_frame)
