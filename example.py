@@ -9,11 +9,17 @@ from gaze_tracking import GazeTracking
 
 gaze = GazeTracking()
 webcam = cv2.VideoCapture(0)
-left_x, left_y, blink  = 0, 0, 0
+left_x = left_y = click = 0
+left_eyes = []
+count = 0
+double_blink = 0
+
+
 
 while True:
     # We get a new frame from the webcam
     _, frame = webcam.read()
+    
 
     # We send this frame to GazeTracking to analyze it
     gaze.refresh(frame)
@@ -21,10 +27,10 @@ while True:
     
     ##################################################################################################################
     '          ************************************    여기 보세요     **********************************             '
-    
-    '어떤 경우에 왜 에러가 발생하는지 모르겠음'
-    left_x, left_y, blink = gaze.left_eye()
-    print(left_x, left_y, blink)
+    left_x, left_y, click = gaze.left_eye()
+    print(left_x, left_y)
+    if click == True:
+        print('user blinks twice. !!CLICK!!')
     
     ###################################################################################################################
 
@@ -36,6 +42,9 @@ while True:
     right_pupil = gaze.pupil_right_coords()
     cv2.putText(frame, "Left pupil:  " + str(left_pupil), (5, 25), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
     cv2.putText(frame, "Right pupil: " + str(right_pupil), (5, 60), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+    if click == True:
+        cv2.putText(frame, "Double Blink(Click): " + str(click), (5, 105), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+        
 
     cv2.imshow("Demo", frame)  
     
