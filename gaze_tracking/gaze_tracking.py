@@ -4,7 +4,8 @@ import cv2
 import dlib
 from .eye import Eye
 from .calibration import Calibration
-
+import csv
+import time
 
 class GazeTracking(object):
     """
@@ -28,6 +29,7 @@ class GazeTracking(object):
         self._predictor = dlib.shape_predictor(model_path)
         self.count = 0
         self.double_blink = False
+        self.left = []
         
 
     @property
@@ -95,38 +97,57 @@ class GazeTracking(object):
 
         return frame
     
+    def txt_left_coords(self):
+    #참고 : https://seong6496.tistory.com/328'''
+        
+        if self.pupils_located:
+            x_left, y_left = self.pupil_left_coords()
+            self.left.append((x_left, y_left))
+            # print(self.left)
+
+        with open('left.csv','w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(self.left)
+            
+    
     ##################################################################################################################
     '          ************************************    여기 보세요    **********************************              '
     ##################################################################################################################
     
-    def left_eye(self):
-        '''
-        return left eye's coordinate(x,y) and whether left eye's double blinking
-        if user blinks twice, double_blink will be returned as 1       
-        '''
-        left_x = left_y = 0
-        self.double_blink = False
-        
-        if self.pupils_located:       
-            left_x, left_y = self.pupil_left_coords()    
-                            
-            # #blinking 기존 코드
-            # blinking_ratio = (self.eye_left.blinking + self.eye_right.blinking) / 2
-            # if blinking_ratio > 3.8:    #3.8
-            #     blink = 1          
-            
-        '''
-        원래 detect_blink.py 코드로 blink 횟수 파악해서 2번 깜박이면 click signal 발생시키도록 해야하는데
-        그렇게 하려면 오늘만에 못할거 같아서 일단 무식하게 방법으로 구현만 해놨어
-        이번주 틈틈이+시험 끝나고 해서 수정해놓겠습니다 하ㅏ핳ㅎ하  
-        '''
-        if left_x == 0 and left_y == 0:
-            self.count += 1
-            
-        if self.count >= 6 and self.count <= 8:
-            self.count = 0
-            self.double_blink = 1
-        
-        return left_x, left_y, self.double_blink
+    # def detect_blink(self):
+    #     while True:
+    #         if fileStream and not vs.more():
+    #             break
+
+    #         frame = vs.read()
+    #         frame = imutils.resize(frame, width=450)
+    #         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    #         rects = detector(gray, 0)
+
+    #         for rect in rects:
+    #             shape = predictor(gray, rect)
+    #             shape = face_utils.shape_to_np(shape)
+
+    #             leftEye = shape[lStart: lEnd]
+    #             rightEye = shape[rStart: rEnd]
+    #             leftEAR = eye_aspect_ratio(leftEye)
+    #             rightEAR = eye_aspect_ratio(rightEye)
+
+    #             ear = (leftEAR + rightEAR) / 2.0
+
+    #             leftEyeHull = cv2.convexHull(leftEye)
+    #             rightEyeHull = cv2.convexHull(rightEye)
+    #             cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
+    #             cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
+
+    #             if ear < EYE_AR_THRESH:
+    #                 COUNTER += 1
+    #             else:
+    #                 if COUNTER >= EYE_AR_CONSEC_FRAMES:
+    #                     TOTAL += 1
+
+    #                 COUNTER = 0
         
     ##################################################################################################################
+    
