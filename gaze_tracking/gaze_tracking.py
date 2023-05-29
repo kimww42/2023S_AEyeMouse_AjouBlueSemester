@@ -2,10 +2,10 @@ from __future__ import division
 import os
 import cv2
 import dlib
+import csv
 from .eye import Eye
 from .calibration import Calibration
-import csv
-import time
+import pyautogui
 
 class GazeTracking(object):
     """
@@ -27,8 +27,6 @@ class GazeTracking(object):
         cwd = os.path.abspath(os.path.dirname(__file__))
         model_path = os.path.abspath(os.path.join(cwd, "trained_models/shape_predictor_68_face_landmarks.dat"))
         self._predictor = dlib.shape_predictor(model_path)
-        self.count = 0
-        self.double_blink = False
         self.left = []
         
 
@@ -38,8 +36,8 @@ class GazeTracking(object):
         try:
             int(self.eye_left.pupil.x)
             int(self.eye_left.pupil.y)
-            int(self.eye_right.pupil.x)
-            int(self.eye_right.pupil.y)
+            # int(self.eye_right.pupil.x)
+            # int(self.eye_right.pupil.y)
             return True
         except Exception:
             return False
@@ -52,11 +50,12 @@ class GazeTracking(object):
         try:
             landmarks = self._predictor(frame, faces[0])
             self.eye_left = Eye(frame, landmarks, 0, self.calibration)
-            self.eye_right = Eye(frame, landmarks, 1, self.calibration)
+            # self.eye_right = Eye(frame, landmarks, 1, self.calibration)
+
 
         except IndexError:
             self.eye_left = None
-            self.eye_right = None
+            # self.eye_right = None
 
     def refresh(self, frame):
         """
@@ -75,13 +74,6 @@ class GazeTracking(object):
             y = self.eye_left.origin[1] + self.eye_left.pupil.y
             return (x, y)
 
-    def pupil_right_coords(self):
-        """Returns the coordinates of the right pupil"""
-        if self.pupils_located:
-            x = self.eye_right.origin[0] + self.eye_right.pupil.x
-            y = self.eye_right.origin[1] + self.eye_right.pupil.y
-            return (x, y)
-
     def annotated_frame(self):
         """Returns the main frame with pupils highlighted"""
         frame = self.frame.copy()
@@ -89,65 +81,56 @@ class GazeTracking(object):
         if self.pupils_located:
             color = (0, 255, 0)
             x_left, y_left = self.pupil_left_coords()
-            x_right, y_right = self.pupil_right_coords()
+            # x_right, y_right = self.pupil_right_coords()
             cv2.line(frame, (x_left - 5, y_left), (x_left + 5, y_left), color)
             cv2.line(frame, (x_left, y_left - 5), (x_left, y_left + 5), color)
-            cv2.line(frame, (x_right - 5, y_right), (x_right + 5, y_right), color)
-            cv2.line(frame, (x_right, y_right - 5), (x_right, y_right + 5), color)
 
         return frame
     
-    def txt_left_coords(self):
-    #참고 : https://seong6496.tistory.com/328'''
+    def move_mouse(self, eye_x, eye_y):
+        '''참고 : https://seong6496.tistory.com/328'''
         
         if self.pupils_located:
-            x_left, y_left = self.pupil_left_coords()
-            self.left.append((x_left, y_left))
-            # print(self.left)
+            pyautogui.FAILSAFE = False
+            # screen 1512*982
+            width, height = pyautogui.size()
 
-        with open('left.csv','w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(self.left)
-            
-    
-    ##################################################################################################################
-    '          ************************************    여기 보세요    **********************************              '
-    ##################################################################################################################
-    
-    # def detect_blink(self):
-    #     while True:
-    #         if fileStream and not vs.more():
-    #             break
+            # real input
+            lja_data = [[-4, -4], [-1, -3], [2, -3], [6, -4], [12, -1],
+                        [-3, -3], [-2, -4], [3, -3], [7, -3], [11, -1],
+                        [-2, -2], [ 0, -1], [1, -1], [5, -1], [11,  0],
+                        [-6,  0], [ 0,  0], [0,  0], [5,  1], [14,  3]]
 
-    #         frame = vs.read()
-    #         frame = imutils.resize(frame, width=450)
-    #         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # cali input
+            lja_cali_data = [[-4, -4], [0, -4], [4, -3], [8, -4], [12, -4],
+                             [-4, -3], [0, -3], [4, -3], [8, -3], [12, -3],
+                             [-4, -2], [0, -2], [4, -2], [8, -2], [12, -2],
+                             [-4, -1], [0, -1], [4, -1], [8, -1], [12, -1],
+                             [-4,  0], [0,  0], [4,  0], [8,  0], [12,  0]]
 
-    #         rects = detector(gray, 0)
+            gaze_x, gaze_y = self.pupil_left_coords()
 
-    #         for rect in rects:
-    #             shape = predictor(gray, rect)
-    #             shape = face_utils.shape_to_np(shape)
+            if eye_x or eye_y or gaze_x or gaze_y :
+                x = (gaze_x - eye_x)
+                y = (gaze_y - eye_y)
 
-    #             leftEye = shape[lStart: lEnd]
-    #             rightEye = shape[rStart: rEnd]
-    #             leftEAR = eye_aspect_ratio(leftEye)
-    #             rightEAR = eye_aspect_ratio(rightEye)
+                if x < -4:
+                    x = -4
+                elif x > 12:
+                    x = 12
 
-    #             ear = (leftEAR + rightEAR) / 2.0
+                if y < -4:
+                    y = -4
+                elif y > 0:
+                    y = 0
 
-    #             leftEyeHull = cv2.convexHull(leftEye)
-    #             rightEyeHull = cv2.convexHull(rightEye)
-    #             cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
-    #             cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
-
-    #             if ear < EYE_AR_THRESH:
-    #                 COUNTER += 1
-    #             else:
-    #                 if COUNTER >= EYE_AR_CONSEC_FRAMES:
-    #                     TOTAL += 1
-
-    #                 COUNTER = 0
-        
-    ##################################################################################################################
-    
+                x = x+4
+                y = y+4
+                print(x, y)
+                width_scale = int(width/16)
+                height_scale = int(height/4)
+                print(width_scale, height_scale)
+                x = width_scale * x
+                y = height_scale * y
+                print(f'{x}, {y}, eX:{eye_x}, eY:{eye_y}, gX:{gaze_x}, gY:{gaze_y}')
+                pyautogui.moveTo(x, y)
